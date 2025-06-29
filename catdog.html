@@ -1,0 +1,47 @@
+<input id="photo" type="file" />
+<div id="results"></div>
+
+<script type="module">
+  import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+  (async () => {
+    const client = await Client.connect("sbe2324/catdognick");
+    console.log(await client.view_api());
+
+    const photo   = document.getElementById("photo");
+    const results = document.getElementById("results");
+
+    photo.addEventListener("change", async () => {
+      const file = photo.files[0];
+      if (!file) return;
+
+        try {
+        // call predict
+        const resp = await client.predict("/predict", { img: file });
+
+        // pull out the confidences array
+        const confs = resp.data[0].confidences;
+        // look up each by label
+        const dogProb = confs.find(c => c.label === "Dog")?.confidence ?? 0;
+        const catProb = confs.find(c => c.label === "Cat")?.confidence ?? 0;
+
+        // render neatly
+        results.innerHTML = `
+          <img src="${URL.createObjectURL(file)}" width="300">
+            <br>
+            <br>
+            Sam says:
+            <br>
+            <br>
+            I am ${(dogProb*100).toFixed(2)}% confident this is a dog. 
+            <br>
+            <br>
+            I am ${(catProb*100).toFixed(2)}% confident this is a cat.
+        `;
+      } catch(err) {
+        console.error("❌ Gradio predict error:", err.original_msg || err);
+        results.innerHTML = `<p style="color:red">Error: ${err.original_msg||err}</p>`;
+      }
+    });
+  })();
+</script>
