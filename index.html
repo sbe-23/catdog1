@@ -38,6 +38,49 @@
             <br>
             I am ${(catProb*100).toFixed(2)}% confident this is a cat.
         `;
+          // Add this after results.innerHTML = ... in your event listener
+          function confetti() {
+            for (let i = 0; i < 100; i++) {
+              const div = document.createElement('div');
+              div.style.position = 'fixed';
+              div.style.left = Math.random() * 100 + 'vw';
+              div.style.top = '-10px';
+              div.style.width = '8px';
+              div.style.height = '8px';
+              div.style.background = `hsl(${Math.random()*360},100%,50%)`;
+              div.style.borderRadius = '50%';
+              div.style.zIndex = 9999;
+              document.body.appendChild(div);
+              let fall = setInterval(() => {
+                div.style.top = (parseFloat(div.style.top) + 5) + 'px';
+                if (parseFloat(div.style.top) > window.innerHeight) {
+                  clearInterval(fall);
+                  div.remove();
+                }
+              }, 16);
+            }
+          }
+          confetti();
+          // Play sound based on confidence
+          // Use a different sound for each animal
+          let audio;
+          if (dogProb > .5) {
+            audio = new Audio('https://www.myinstants.com/media/sounds/deepbark.mp3');
+            audio.play();
+            results.innerHTML += `<p style="color:blue">🐶 Woof!</p>`;
+          }
+          else if (catProb > .5) {
+            audio = new Audio('https://www.myinstants.com/media/sounds/meow-1.mp3');
+            audio.play();
+            results.innerHTML += `<p style="color:red">🐱 Meow!</p>`;
+          }
+          else
+            results.innerHTML += `<p style="color:orange">🤔 What the heck!</p>`;
+          // Add rotation effect on hover
+          const img = results.querySelector('img');
+          img.style.transition = 'transform 0.5s';
+          img.onmouseover = () => img.style.transform = 'rotate(20deg) scale(1.1)';
+          img.onmouseout  = () => img.style.transform = '';
       } catch(err) {
         console.error("❌ Gradio predict error:", err.original_msg || err);
         results.innerHTML = `<p style="color:red">Error: ${err.original_msg||err}</p>`;
