@@ -1,5 +1,8 @@
+<div><b>Welcome to Sam's Cat vs Dog Classifier!</b></div>
+<br>
 <input id="photo" type="file" />
 <div id="results"></div>
+
 
 <script type="module">
   import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
@@ -38,29 +41,55 @@
             <br>
             I am ${(catProb*100).toFixed(2)}% confident this is a cat.
         `;
-          // Add this after results.innerHTML = ... in your event listener
-          function confetti() {
-            for (let i = 0; i < 100; i++) {
-              const div = document.createElement('div');
-              div.style.position = 'fixed';
-              div.style.left = Math.random() * 100 + 'vw';
-              div.style.top = '-10px';
-              div.style.width = '8px';
-              div.style.height = '8px';
-              div.style.background = `hsl(${Math.random()*360},100%,50%)`;
-              div.style.borderRadius = '50%';
-              div.style.zIndex = 9999;
-              document.body.appendChild(div);
-              let fall = setInterval(() => {
-                div.style.top = (parseFloat(div.style.top) + 5) + 'px';
-                if (parseFloat(div.style.top) > window.innerHeight) {
-                  clearInterval(fall);
-                  div.remove();
-                }
-              }, 16);
-            }
+        // Add fireworks effect
+        function fireworks(imgElem) {
+          // Get bounding rect of the image
+          const rect = imgElem.getBoundingClientRect();
+          // Start just to the right of the image, vertically centered
+          const centerX = rect.right + 150; // 50px gap to the right
+          const centerY = rect.top + rect.height / 2;
+          const numParticles = 60;
+          for (let i = 0; i < numParticles; i++) {
+            const div = document.createElement('div');
+            div.style.position = 'fixed';
+            div.style.left = centerX + 'px';
+            div.style.top = centerY + 'px';
+            div.style.width = '30px';
+            div.style.height = '30px';
+            div.style.background = `hsl(${Math.random()*360},100%,60%)`;
+            div.style.borderRadius = '50%';
+            div.style.zIndex = 9999;
+            div.style.pointerEvents = 'none';
+            div.style.opacity = 1;
+            document.body.appendChild(div);
+
+            // Random angle and speed
+            const angle = Math.random() * 2 * Math.PI;
+            const speed = 2 + Math.random() * 4;
+            let t = 0;
+
+            const interval = setInterval(() => {
+              t += 1;
+              // Move outward in the chosen direction
+              div.style.left = (centerX + Math.cos(angle) * speed * t) + 'px';
+              div.style.top  = (centerY + Math.sin(angle) * speed * t) + 'px';
+              // Fade out and shrink
+              div.style.opacity = 1 - t / 60;
+              div.style.transform = `scale(${1 - t/80})`;
+              if (t > 60) {
+                clearInterval(interval);
+                div.remove();
+              }
+            }, 16);
           }
-          confetti();
+        }
+        // Wait for the image to render, then trigger fireworks from its center
+        const imgElem = results.querySelector('img');
+        if (imgElem.complete) {
+          fireworks(imgElem);
+        } else {
+          imgElem.onload = () => fireworks(imgElem);
+        }
           // Play sound based on confidence
           // Use a different sound for each animal
           let audio;
